@@ -46,4 +46,4 @@ def christoffel_solver(C, rho, inc, azi):
     velo_raw = np.sqrt(np.real(eigvals)/rho) # Check unit control to see if this factor of 10 is needed
     q_raw = np.imag(eigvals)/np.real(eigvals)
     idx = np.argsort(velo_raw)[::-1] # [::-1] flips indicies so sort is descending
-    return velo_raw[idx], q_raw[idx]
+    return np.vstack([velo_raw[idx], q_raw[idx]])
