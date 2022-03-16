@@ -10,6 +10,7 @@ Created on Mon Mar 14 15:55:58 2022
 import numpy as np
 
 from hudson import hudson_complex_c, approx_q_values, calculate_u_coefficiants
+from christoffel import christoffel_solver
 
 class IsoMedium:
     '''
@@ -161,4 +162,36 @@ class CrackedSolid:
                                             self.aspect)
         return approx_q_values(theta, freq, self.cden, self.crad, self.Solid.vp,
                                self.Solid.vs, u11, u33)
+    
+    def q_to_tstar(self, path_length, q, v):
         
+        t_star = path_length/(q*v)
+        return t_star
+    
+    def hudson_dtstar(self, theta, freq, path_length, vp, vs):
+        '''
+        Calculates differntial attenuation in terms of t* using hudson modelling
+        '''
+        u11, u33 = calculate_u_coefficiants(self.Solid.lam, self.Solid.mu,
+                                            self.Fill.kappa, self.Fill.mu,
+                                            self.aspect)
+        qp, qsr, qsp = approx_q_values(theta, freq, self.cden, self.crad, self.Solid.vp,
+                               self.Solid.vs, u11, u33)
+        tp_star = self.q_to_tstar(path_length, 1/qp, vp)
+        tsr_star = self.q_to_tstar(path_length, 1/qsr, vs)
+        tsp_star = self.q_to_tstar(path_length, 1/qsp, vs)
+        
+        return tp_star, tsr_star, tsp_star
+    
+ 
+    def calc_velocity_and_attenuation(self, theta):
+        '''
+        Solve christoffel equation 
+        '''
+        incs = 90 - theta
+        azi = 0
+        chris_soln = np.array([christoffel_solver(self.cmplx_c, self.rho_eff, inc, azi) for inc in incs])
+        velocity = chris_soln[:,0,:]
+        attenuation = chris_soln[:,1,:]
+        return velocity, attenuation
+
