@@ -10,7 +10,7 @@ Created on Mon Mar 14 15:55:58 2022
 import numpy as np
 
 from hudson import hudson_complex_c, approx_q_values, calculate_u_coefficiants
-from christoffel import christoffel_solver
+from christoffel import calc_velocity_and_attenuation
 
 class IsoMedium:
     '''
@@ -105,7 +105,7 @@ class CrackedSolid:
         self.Fill = Fill
         if model == 'hudson':
             self.set_hudson_params(kwargs['cden'], kwargs['crad'], kwargs['aspect'])
-            self.cmplx_c = self.calc_hudson_tensor(kwargs['freq'])
+            
             
     def set_hudson_params(self, density, radii, aspect):
         '''
@@ -148,11 +148,11 @@ class CrackedSolid:
             complex elastic tensor
     
         '''
-        cmplx_c = hudson_complex_c(self, freq)
-    
-        return cmplx_c
+        self.cmplx_c = hudson_complex_c(self.Solid.lam, self.Solid.mu, self.Solid.rho, 
+                                   self.Fill.kappa, self.Fill.mu, self.cden, self.crad,
+                                   self.aspect, freq)
             
-    def hudson_attenuation(self, theta, freq):
+    def hudson_approx_attenuation(self, theta, freq):
         '''
         Approximates attenuation using Hudsons's forumulas as described in 
         Crampin (1984) eqn. 5'
@@ -163,35 +163,26 @@ class CrackedSolid:
         return approx_q_values(theta, freq, self.cden, self.crad, self.Solid.vp,
                                self.Solid.vs, u11, u33)
     
-    def q_to_tstar(self, path_length, q, v):
-        
-        t_star = path_length/(q*v)
-        return t_star
+
     
-    def hudson_dtstar(self, theta, freq, path_length, vp, vs):
-        '''
-        Calculates differntial attenuation in terms of t* using hudson modelling
-        '''
-        u11, u33 = calculate_u_coefficiants(self.Solid.lam, self.Solid.mu,
-                                            self.Fill.kappa, self.Fill.mu,
-                                            self.aspect)
-        qp, qsr, qsp = approx_q_values(theta, freq, self.cden, self.crad, self.Solid.vp,
-                               self.Solid.vs, u11, u33)
-        tp_star = self.q_to_tstar(path_length, 1/qp, vp)
-        tsr_star = self.q_to_tstar(path_length, 1/qsr, vs)
-        tsp_star = self.q_to_tstar(path_length, 1/qsp, vs)
+    # def calculate_tstar(self, theta, freq, path_length, vp, vs):
+    #     '''
+    #     Calculates differntial attenuation in terms of t* using hudson modelling
+    #     '''
+    #     azis = np.zeros(1)
+    #     velo, attn = self.calc_velocity_and_attenuation(theta, azis)
         
-        return tp_star, tsr_star, tsp_star
+    #     tstar = 
+        
+    #     return tp_star, tsr_star, tsp_star
     
  
-    def calc_velocity_and_attenuation(self, theta):
+    def calc_velocity_and_attenuation(self, theta, azis):
         '''
-        Solve christoffel equation 
+        Solves christoffel equation for rays propagating at theta degrees from the crack normal.
         '''
         incs = 90 - theta
-        azi = 0
-        chris_soln = np.array([christoffel_solver(self.cmplx_c, self.rho_eff, inc, azi) for inc in incs])
-        velocity = chris_soln[:,0,:]
-        attenuation = chris_soln[:,1,:]
+        
+        velocity, attenuation = calc_velocity_and_attenuation(self.cmplx_c, self.rho_eff, incs, azis)
         return velocity, attenuation
 
