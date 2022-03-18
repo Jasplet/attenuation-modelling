@@ -10,6 +10,22 @@ Tools for solving the chrsitfoffel equation for a complex elastic tensor C
 
 import numpy as np
 
+def calc_velocity_and_attenuation(cmplx_c, rho, incs, azis):
+    '''
+    Solves christoffel equation for rays propagating at theta degrees from the crack normal.
+    '''
+    nincs = len(incs)
+    mazis = len(azis)
+    velocity = np.zeros((3, nincs, mazis))
+    attenuation = np.zeros((3, nincs, mazis))
+    for i in range(0,len(incs)):
+        for j in range(0,len(azis)):
+            velo, attn = christoffel_solver(cmplx_c, rho, incs[i], azis[j])
+            velocity[:,i,j] = velo
+            attenuation[:,i,j] = attn
+    
+    return velocity, attenuation
+
 def sphe2cart(inc, azi):
     '''
     Converts from spherical to cartesian co-ordinates where:
@@ -46,4 +62,7 @@ def christoffel_solver(C, rho, inc, azi):
     velo_raw = np.sqrt(np.real(eigvals)/rho) # Check unit control to see if this factor of 10 is needed
     q_raw = np.imag(eigvals)/np.real(eigvals)
     idx = np.argsort(velo_raw)[::-1] # [::-1] flips indicies so sort is descending
-    return np.vstack([velo_raw[idx], q_raw[idx]])
+    return velo_raw[idx], q_raw[idx]
+
+
+
