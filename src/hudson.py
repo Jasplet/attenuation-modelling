@@ -104,7 +104,7 @@ def hudson_c_real(lam, mu, u11, u33, cden):
     return cR
 
 
-def hudson_complex_c(CrackedSolid, freq):
+def hudson_complex_c(lam, mu, rho, kappap, mup, cden, crad, aspect, freq):
     '''
     Calculates the complex (anelastic) components of the elastic tensor for a cracked solid.
 
@@ -112,8 +112,20 @@ def hudson_complex_c(CrackedSolid, freq):
 
     Parameters
     ----------
-    CrackedSolid : Class
-        An instance of the CrackedSolid class with a defined Solid and Fill
+    lam : float
+        1st lamee parameter of the uncracked solid
+    mu : float
+        shear modulus of the uncracked solid
+    rho : 
+        density of the uncracked solid
+    kappap : float
+        bulk modulus of the crack fill material 
+    mup : float
+        shear modulus of the crack fill material 
+    cden : float
+        crack density 
+    aspect :
+        aspect ratio of cracks
     freq : float
         frequency of sampling waves
 
@@ -123,23 +135,16 @@ def hudson_complex_c(CrackedSolid, freq):
     c_cmplx : complex array
         the complex elastic tensor for a cracked solid expected from Hudson modelling
     '''
-    u11, u33 = calculate_u_coefficiants(CrackedSolid.Solid.lam, CrackedSolid.Solid.mu,
-                                        CrackedSolid.Fill.kappa, CrackedSolid.Fill.mu,
-                                        CrackedSolid.aspect)
+    vp = np.sqrt((lam + 2*mu)/rho)
+    vs = np.sqrt(mu/rho)
+    u11, u33 = calculate_u_coefficiants(lam, mu, kappap, mup, aspect)
     # Find real parts of complex elastic tensor (these give us velocity anisotropy)
-    c_real = hudson_c_real(CrackedSolid.Solid.lam, CrackedSolid.Solid.mu,
-                           u11, u33, CrackedSolid.cden)
+    c_real = hudson_c_real(lam, mu, u11, u33, cden)
     # Use equation 6 of Crampin to estimate imaginary part of C
     # Calculate specific values of Q as required by Crapin's method
-    qp0, qsr0, _ = approx_q_values(0, freq, CrackedSolid.cden, CrackedSolid.crad,
-                                   CrackedSolid.Solid.vp, CrackedSolid.Solid.vs,
-                                   u11, u33)
-    qp45, _, _ = approx_q_values(45, freq, CrackedSolid.cden, CrackedSolid.crad,
-                                   CrackedSolid.Solid.vp, CrackedSolid.Solid.vs,
-                                   u11, u33)
-    qp90, qsr90, _ = approx_q_values(90, freq, CrackedSolid.cden, CrackedSolid.crad,
-                                   CrackedSolid.Solid.vp, CrackedSolid.Solid.vs,
-                                   u11, u33)
+    qp0, qsr0, _ = approx_q_values(0, freq, cden, crad, vp, vs, u11, u33)
+    qp45, _, _ = approx_q_values(45, freq, cden, crad, vp, vs, u11, u33)
+    qp90, qsr90, _ = approx_q_values(90, freq, cden, crad, vp, vs, u11, u33)
     # terms A and B are defined by a combination of some of the other imaginary elastic constants
     # Crampin uses notation c_ijkl, I will use voight (C_mn) notation
     # Indexing starts from 0 so C_11 = c[0,0]
