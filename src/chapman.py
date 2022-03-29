@@ -53,8 +53,8 @@ def chapman_ani(f, lam, mu, bulk_f, visc_f, aspect, cden, fden,
     gamma, gamma_prime = calc_gammas(lam, mu, bulk_f, bulk_c)
     gamma = 10 
     gamma_prime = 1
-    d1, d2 = calc_d_terms(gamma, gamma_prime, bulk_c, tau_m, tau_f, cpor, ppor, fpor, omega)
-    f1, f2 = calc_f_terms(d1, d2, gamma, gamma_prime, bulk_c, tau_m, tau_f, cpor, ppor, omega)
+    d1, d2 = calc_d_terms(gamma, gamma_prime, bulk_c, tau_m, tau_f, cpor, ppor, fpor, aspect, omega)
+    f1, f2 = calc_f_terms(d1, d2, gamma, gamma_prime, bulk_c, tau_m, tau_f, cpor, ppor, aspect, omega)
     g1, g2, g3 = calc_g_terms(d1, d2, gamma, gamma_prime, bulk_c, tau_m, omega)
     c = calc_chapman_tensor(lam, mu, aspect, sigma_c, cpor, ppor, fpor, d1, d2, f1, f2, g1, g2, g3) 
     return c
