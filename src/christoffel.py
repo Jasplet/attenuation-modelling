@@ -24,6 +24,16 @@ def calc_velocity_and_attenuation(cmplx_c, rho, incs, azis):
             velocity[:,i,j] = velo
             attenuation[:,i,j] = attn
     
+    if (mazis == 1) and (nincs == 1):
+        velocity = velocity.reshape((3,))
+        attenuation = attenuation.reshape((3,))
+    elif (mazis == 1):
+        velocity = velocity.reshape((3, nincs))
+        attenuation = attenuation.reshape((3, nincs))
+    elif nincs == 1:
+        velocity = velocity.reshape((3, mazis))
+        attenuation = attenuation.reshape((3, mazis))
+        
     return velocity, attenuation
 
 def sphe2cart(inc, azi):
