@@ -9,7 +9,7 @@ Created on Fri Mar 18 16:50:54 2022
 import numpy as np
 
 
-def chapmab_anic():
+def chapman_anic():
     '''
     Uses Chapman (2003) modelling to calculate the frequency dependent anisotropic tensor for a cracked solid.
     '''
