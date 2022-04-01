@@ -105,8 +105,11 @@ class CrackedSolid:
         self.Fill = Fill
         if model == 'hudson':
             self.set_hudson_params(kwargs['cden'], kwargs['crad'], kwargs['aspect'])
-            
-            
+        elif model == 'chapman':
+            self.set_chapman_param(kwargs)
+        else:
+            raise ValueError(f'Unknown model <{model}>')
+      
     def set_hudson_params(self, density, radii, aspect):
         '''
         Sets up parameters for Hudson Modelling, this model only relies on crack density
@@ -130,6 +133,8 @@ class CrackedSolid:
         self.vol_frac = np.pi*aspect*density
         self.rho_eff = self.vol_frac*self.Fill.rho + (1- self.vol_frac)*self.Solid.rho
 
+    def set_chapman_param(self, params):
+        pass
 
     def calc_hudson_tensor(self, freq):
         '''
