@@ -71,7 +71,7 @@ class IsoMedium:
         '''
         self.lam = lam
         self.mu = mu
-        self.kappa = mu + (2/3)*mu
+        self.kappa = lam + (2/3)*mu
         self.vp = np.sqrt((lam - 2*mu)/self.rho)
         self.vs = np.sqrt(mu/self.rho)
         
