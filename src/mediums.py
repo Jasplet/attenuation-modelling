@@ -10,6 +10,7 @@ Created on Mon Mar 14 15:55:58 2022
 import numpy as np
 
 from hudson import hudson_complex_c, approx_q_values, calculate_u_coefficiants
+from chapman import chapman_ani
 from christoffel import calc_velocity_and_attenuation
 
 class IsoMedium:
@@ -103,6 +104,7 @@ class CrackedSolid:
     def __init__(self, Solid, Fill, model, **kwargs):
         self.Solid = Solid
         self.Fill = Fill
+        self.aspect = kwargs['aspect']
         if model == 'hudson':
             self.set_hudson_params(kwargs['cden'], kwargs['crad'], kwargs['aspect'])
         elif model == 'chapman':
@@ -129,12 +131,8 @@ class CrackedSolid:
         '''
         self.cden = density
         self.crad = radii
-        self.aspect = aspect
         self.vol_frac = np.pi*aspect*density
         self.rho_eff = self.vol_frac*self.Fill.rho + (1- self.vol_frac)*self.Solid.rho
-
-    def set_chapman_param(self, params):
-        pass
 
     def calc_hudson_tensor(self, freq):
         '''
@@ -156,7 +154,34 @@ class CrackedSolid:
         self.cmplx_c = hudson_complex_c(self.Solid.lam, self.Solid.mu, self.Solid.rho, 
                                    self.Fill.kappa, self.Fill.mu, self.cden, self.crad,
                                    self.aspect, freq)
-            
+
+    def set_chapman_param(self, params):
+        self.visc_f = params['visc_f']
+        self.cden = params['cden']
+        self.fden = params['fden']
+        self.frac_len = params['crad']
+        self.por = params['por']
+        self.tau_m = params['tau_m']
+        self.rho_eff = self.por*self.Fill.rho + (1- self.por)*self.Solid.rho
+
+    
+    def calc_chapman_tensor(self):
+        '''
+        Calculate a frequency dependent elastic tensor using Chapman (2003)'s squirt flow model
+
+        Parameters
+        ----------
+        freq : float
+            frequency of interest
+        Returns
+        -------
+        cmplx_c : array
+            squirt flow elastic tensor
+        '''
+        self.cmplx_c = chapman_ani(freq, self.Solid.lam, self.Solid.mu, self.Fill.kappa,
+                                   visc_f, aspect, cden, fden, frac_len, por, tau_m)
+
+
     def hudson_approx_attenuation(self, theta, freq):
         '''
         Approximates attenuation using Hudsons's forumulas as described in 
@@ -167,9 +192,7 @@ class CrackedSolid:
                                             self.aspect)
         return approx_q_values(theta, freq, self.cden, self.crad, self.Solid.vp,
                                self.Solid.vs, u11, u33)
-    
 
-    
     # def calculate_tstar(self, theta, freq, path_length, vp, vs):
     #     '''
     #     Calculates differntial attenuation in terms of t* using hudson modelling
