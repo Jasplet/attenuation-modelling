@@ -159,13 +159,13 @@ class CrackedSolid:
         self.visc_f = params['visc_f']
         self.cden = params['cden']
         self.fden = params['fden']
-        self.frac_len = params['crad']
+        self.flen = params['flen']
         self.por = params['por']
         self.tau_m = params['tau_m']
         self.rho_eff = self.por*self.Fill.rho + (1- self.por)*self.Solid.rho
 
     
-    def calc_chapman_tensor(self):
+    def calc_chapman_tensor(self, freq):
         '''
         Calculate a frequency dependent elastic tensor using Chapman (2003)'s squirt flow model
 
@@ -179,7 +179,8 @@ class CrackedSolid:
             squirt flow elastic tensor
         '''
         self.cmplx_c = chapman_ani(freq, self.Solid.lam, self.Solid.mu, self.Fill.kappa,
-                                   visc_f, aspect, cden, fden, frac_len, por, tau_m)
+                                   self.visc_f, self.aspect, self.cden, self.fden, self.flen,
+                                   self.por, self.tau_m)
 
 
     def hudson_approx_attenuation(self, theta, freq):
