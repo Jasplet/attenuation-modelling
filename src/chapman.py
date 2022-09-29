@@ -504,6 +504,12 @@ def split_porosity(por, cden, fden, aspect):
     cpor=4/3*np.pi*cden*aspect; # crack porosity
     fpor=4/3*np.pi*fden*aspect; # fracture porosity
     ppor=por-cpor-fpor; # pore porosity
+
+    if (fpor > por):
+        raise ValueError(f'Invalid fracture density {fden}, fpor {fpor} > total porosity {por}!!') 
+    elif (ppor < 0):
+        raise ValueError(f'Invalid ppor {ppor}, check cpor {cpor} and fpor {fpor}!')
+        
     return cpor, ppor, fpor 
 
 def calc_poisson_ratio(lam, mu):
