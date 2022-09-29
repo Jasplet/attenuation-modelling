@@ -57,7 +57,7 @@ def christoffel_solver(C, rho, inc, azi):
     '''
     Solves the christoffel equation for a complex (or real) elastic tensor C
 
-    Returns sorted phase velocities and dissipation coefficiants (Q)
+    Returns sorted phase velocities and dissipation coefficiants (1/Q)
     '''
     X = sphe2cart(inc, azi)
     # Form 3x3 Christoffel Tensor using Winterstein method (pg 1076, Winterstein, 1999)
@@ -70,7 +70,7 @@ def christoffel_solver(C, rho, inc, azi):
     T = gamma @ C @ gamma.T # @ symbol does matrix multiplication as of Python 3.5
     eigvals, eigvecs = np.linalg.eig(T)
     velo_raw = np.sqrt(np.real(eigvals)/rho) # Check unit control to see if this factor of 10 is needed
-    q_raw = np.imag(eigvals)/np.real(eigvals)
+    q_raw = np.imag(eigvals)/np.real(eigvals) # Equation 8.7 in crampin (1981). this is 1/Q
     idx = np.argsort(velo_raw)[::-1] # [::-1] flips indicies so sort is descending
     return velo_raw[idx], q_raw[idx]
 
