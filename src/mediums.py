@@ -206,12 +206,27 @@ class CrackedSolid:
     #     return tp_star, tsr_star, tsp_star
     
  
-    def calc_velocity_and_attenuation(self, theta, azis):
+    def calc_velocity_and_attenuation(self, incs, azis):
         '''
         Solves christoffel equation for rays propagating at theta degrees from the crack normal.
         '''
-        incs = 90 - theta
         
-        velocity, attenuation = calc_velocity_and_attenuation(self.cmplx_c, self.rho_eff, incs, azis)
-        return velocity, attenuation
+        velocity, attenuation, fast_pol = calc_velocity_and_attenuation(self.cmplx_c, self.rho_eff, incs, azis)
+        return velocity, attenuation, fast_pol
+
+
+    def rotate_tensor(self, alpha ,beta, gamma):
+        '''
+        Adapted from MS_rot3
+
+        Angles are given in degrees and correspond to yaw, -dip and aximuth,
+        respectvly. The rotations are applied in order, ie: alpha, then beta
+        then gamma (by default).
+        '''
+
+        rad_alpha = np.deg2rad(alpha)
+        rad_beta = np.deg2rad(beta)
+        rad_gamma = np.deg2rad(gamma)
+
+
 
