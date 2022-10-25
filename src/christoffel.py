@@ -18,12 +18,14 @@ def calc_velocity_and_attenuation(cmplx_c, rho, incs, azis):
     mazis = len(azis)
     velocity = np.zeros((3, nincs, mazis))
     attenuation = np.zeros((3, nincs, mazis))
+    fast_polarisations = np.zeros((1, nincs, mazis))
     for i in range(0,len(incs)):
         for j in range(0,len(azis)):
-            velo, attn = christoffel_solver(cmplx_c, rho, incs[i], azis[j])
+            velo, attn, fpol = christoffel_solver(cmplx_c, rho, incs[i], azis[j])
             velocity[:,i,j] = velo
             attenuation[:,i,j] = attn
-    
+            fast_polarisations[0,i,j] = fpol
+
     if (mazis == 1) and (nincs == 1):
         velocity = velocity.reshape((3,))
         attenuation = attenuation.reshape((3,))
@@ -34,7 +36,7 @@ def calc_velocity_and_attenuation(cmplx_c, rho, incs, azis):
         velocity = velocity.reshape((3, mazis))
         attenuation = attenuation.reshape((3, mazis))
         
-    return velocity, attenuation
+    return velocity, attenuation, fast_polarisations
 
 def sphe2cart(inc, azi):
     '''
@@ -72,7 +74,46 @@ def christoffel_solver(C, rho, inc, azi):
     velo_raw = np.sqrt(np.real(eigvals)/rho) # Check unit control to see if this factor of 10 is needed
     q_raw = np.imag(eigvals)/np.real(eigvals) # Equation 8.7 in crampin (1981). this is 1/Q
     idx = np.argsort(velo_raw)[::-1] # [::-1] flips indicies so sort is descending
-    return velo_raw[idx], q_raw[idx]
+    eigvec_sort = np.real(eigvecs[:,idx])
+    # Sort out polarisations
+    P = eigvec_sort[:,0]
+    S1 = eigvec_sort[:,1]
+    S2 = eigvec_sort[:,2]
+    # Project vectors for S1,2 on
+    #following MSAT notation
+    S1N = np.cross(X, S1)
+    S1P = np.cross(X, S1N)
+    #S2N = np.cross(X, S2)
+    #S2P = np.cross(X, S2N)
+    # Rotation into y-z planeto calculate angles
+    # Using ported msat functions to make sure i do the right rotations
+    S1PR = v_rot_gamma(S1P, azi)
+    S1PRR = v_rot_beta(S1PR, inc)
+    
+    fpol = np.rad2deg(np.arctan2(S1PRR[1], S1PRR[2]))
+    if fpol < -90:
+        fpol = fpol + 180
+    elif fpol > 90:
+        fpol = fpol - 180 
 
 
+    return velo_raw[idx], q_raw[idx], fpol 
+
+def v_rot_gamma(vec, gamma):
+    '''Rotates about X3 axis, borrowed (ported) from MSAT to ensure consitency '''
+    g_rad = np.deg2rad(gamma)
+    rotmat = np.array([
+                        [np.cos(g_rad), np.sin(g_rad), 0],
+                        [-1*np.sin(g_rad), np.cos(g_rad), 0],
+                        [0, 0, 1]])
+    return vec @ rotmat
+
+def v_rot_beta(vec, beta):
+    '''Rotates about X2 axis, borrowed (ported) from MSAT to ensure consitency '''
+    b_rad = np.deg2rad(beta)
+    rotmat = np.array([
+                        [np.cos(b_rad), 0, -1*np.sin(b_rad)],
+                        [0, 1, 0],
+                        [np.sin(b_rad), 0, np.cos(b_rad)]])
+    return vec @ rotmat
 
