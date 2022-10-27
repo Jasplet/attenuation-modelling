@@ -29,13 +29,16 @@ def calc_velocity_and_attenuation(cmplx_c, rho, incs, azis):
     if (mazis == 1) and (nincs == 1):
         velocity = velocity.reshape((3,))
         attenuation = attenuation.reshape((3,))
+        fast_polarisations = fast_polarisations.reshape((1,))
     elif (mazis == 1):
         velocity = velocity.reshape((3, nincs))
         attenuation = attenuation.reshape((3, nincs))
+        fast_polarisations = fast_polarisations.reshape((nincs,))
     elif nincs == 1:
         velocity = velocity.reshape((3, mazis))
         attenuation = attenuation.reshape((3, mazis))
-        
+        fast_polarisations = fast_polarisations.reshape((mazis,))
+
     return velocity, attenuation, fast_polarisations
 
 def sphe2cart(inc, azi):
@@ -89,7 +92,7 @@ def christoffel_solver(C, rho, inc, azi):
     # Using ported msat functions to make sure i do the right rotations
     S1PR = v_rot_gamma(S1P, azi)
     S1PRR = v_rot_beta(S1PR, inc)
-    
+
     fpol = np.rad2deg(np.arctan2(S1PRR[1], S1PRR[2]))
     if fpol < -90:
         fpol = fpol + 180
