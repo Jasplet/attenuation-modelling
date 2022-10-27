@@ -214,19 +214,81 @@ class CrackedSolid:
         velocity, attenuation, fast_pol = calc_velocity_and_attenuation(self.cmplx_c, self.rho_eff, incs, azis)
         return velocity, attenuation, fast_pol
 
-
-    def rotate_tensor(self, alpha ,beta, gamma):
-        '''
-        Adapted from MS_rot3
-
-        Angles are given in degrees and correspond to yaw, -dip and aximuth,
-        respectvly. The rotations are applied in order, ie: alpha, then beta
-        then gamma (by default).
-        '''
+    def rotate_tensor(self, alpha, beta, gamma, inplace=False):
 
         rad_alpha = np.deg2rad(alpha)
         rad_beta = np.deg2rad(beta)
         rad_gamma = np.deg2rad(gamma)
+        cmplx_c_rot = _rotate_tensor(self.cmplx_c, rad_alpha, rad_beta, rad_gamma)
+        if inplace==True:
+            self.cmplx_c = cmplx_c_rot
+        
+        return cmplx_c_rot
 
+def _rotate_tensor(c, alpha ,beta, gamma):
+    '''
+    Adapted from MS_rot3
 
+    Angles are given in degrees and correspond to yaw, -dip and aximuth,
+    respectvly. The rotations are applied in order, ie: alpha, then beta
+    then gamma (by default).
+    
+    Unlike MS_rot3 this function only handles a single rotation of a single matrix.
+    Rotations are always applied in the order alpha, beta, gamma
+    '''
 
+    rot_order = [0, 1, 2]
+    rot_mats = np.zeros((3,3,3)) 
+    # rot_mats is 3D array holding rotation matrices for alpha, beta, gamaa
+    # this allows us to support different rotation orders in theory
+    rot_mats[0,:,:] = np.array([[1, 0, 0 ], [0, np.cos(alpha), np.sin(alpha)], [0, -1*np.sin(alpha), np.cos(alpha)]])
+    rot_mats[1,:,:] = np.array([[np.cos(beta), 0, -1*np.sin(beta)], [0, 1, 0 ], [np.sin(beta), 0, np.cos(beta)]])
+    rot_mats[2,:,:] = np.array([[np.cos(gamma), np.sin(gamma), 0 ], [-1*np.sin(gamma), np.cos(gamma), 0], [0, 0, 1]])
+
+    rot_mat = rot_mats[rot_order[2],:,:] @ rot_mats[rot_order[1],:,:] @ rot_mats[rot_order[0],:,:]
+
+    cr = _rotR(c, rot_mat)
+    return cr 
+
+def _rotR(C, R):
+    '''
+    Rotate a elastic tensor in Voight notated (6x6) form by a (3x3) rotation matrix
+
+    Ported from MS_rotR, which is intended to be an under-the-hood function
+
+    Routines are from 'Applied Mechanics of Solids' by Allen F. Bower, Chapter 3, 2010 
+    '''
+    # Form the K matrix (based on Bower (2010) [http://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php]
+
+    K = np.zeros((6,6))
+
+    k1 = R**2 # k1 is each element of rotation matrix squared
+
+    k2 = np.array([
+                [R[0,1]*R[0,2], R[0,2]*R[0,0], R[0,0]*R[0,1]],
+                [R[1,1]*R[1,2], R[1,2]*R[1,0], R[1,0]*R[1,1]],
+                [R[2,1]*R[2,2], R[2,2]*R[2,0], R[2,0]*R[2,1]],
+                  ])
+
+    k3 = np.array([
+                [R[1,0]*R[2,0], R[1,1]*R[2,1], R[1,2]*R[2,2]],
+                [R[2,0]*R[0,0], R[2,1]*R[0,1], R[2,2]*R[0,2]],
+                [R[0,0]*R[1,0], R[0,1]*R[1,1], R[0,2]*R[1,2]]
+                ])
+
+    k4 = np.array([
+                [R[1,1]*R[2,2] + R[1,2]*R[2,1], R[1,2]*R[2,0] + R[1,0]*R[2,2], R[1,0]*R[2,1] + R[1,1]*R[2,0]],
+                [R[2,1]*R[0,2] + R[2,2]*R[0,1], R[2,2]*R[0,0] + R[2,0]*R[0,2], R[2,0]*R[0,1] + R[2,1]*R[0,0]],
+                [R[0,1]*R[1,2] + R[0,2]*R[1,1], R[0,2]*R[1,0] + R[0,0]*R[1,2], R[0,0]*R[1,1] + R[0,1]*R[1,0]]
+                ])
+
+    K[0:3, 0:3] = k1
+    K[0:3, 3:] = 2*k2
+    K[3:, 0:3] = k3
+    K[3:, 3:] = k4
+    # print(R)
+
+    CRa = K @ C 
+    CR = CRa @ np.transpose(K)
+
+    return CR 
