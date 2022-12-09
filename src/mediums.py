@@ -25,7 +25,7 @@ class IsoMedium:
         
         Can either provide vp, vs; lam, mu or kappa, mu to initialise.
         '''
-        self.rho = kwargs['rho']
+        self.rho = kwargs['rho'] # Density must be in kg/m3
         
         if 'vp' in kwargs.keys():
             self.set_from_velocity(kwargs['vp'], kwargs['vs'])
