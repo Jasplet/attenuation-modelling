@@ -152,7 +152,7 @@ def hudson_complex_c(lam, mu, rho, kappap, mup, cden, crad, aspect, freq):
     ci_22 = c_real[1,1]*qp90
     ci_44 = c_real[3,3]*qsr90 # this is c2323 in Crampin (1984)
     ci_66 = c_real[5,5]*qsr0 # this is c3131 in Crampin (1984)
-    A = (0.5*(c_real[0,0]+c_real[1,1])+c_real[0,1]+2*c_real[5,5])*qp45-0.5*(ci_11+ci_22)-2*ci_66
+    A = qp45*((c_real[0,0]+c_real[1,1])/2 + c_real[0,1] + 2*c_real[5,5]) - 0.5*(ci_11 + ci_22) - 2*ci_66
     B = ci_22 - 2*ci_44
     # Now make cI
     c_imag = np.array([
