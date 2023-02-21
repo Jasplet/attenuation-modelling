@@ -110,6 +110,7 @@ class AnisotropicMedium:
     Absorb calculation of dt* into Class
     Make a ElasticTensor Class that handles the anisotorpy/rotation/decomposition aspects
     Seperate Medium/Material class that holds other properties (denisty, thickness etc.)
+    edit
     '''
 
 class CrackedSolid:
