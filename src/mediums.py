@@ -96,7 +96,12 @@ class IsoMedium:
         self.kappa = kappa
         self.vp = np.sqrt((self.lam - 2*mu)/self.rho)
         self.vs = np.sqrt(mu/self.rho)
-        
+
+class AnisotropicMedium:
+    '''
+    Anistotrpic solid medium 
+    '''
+
 class CrackedSolid:
     '''
     Defines parameterisation of a cracked solid
