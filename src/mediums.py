@@ -100,6 +100,16 @@ class IsoMedium:
 class AnisotropicMedium:
     '''
     Anistotrpic solid medium 
+
+    To-Dos
+
+    Re-organise Classes to allow for a generic anisotropic medium (which can or cannot have specified imaginary components)
+    Want to be able to handle both LPO and SPO anisotopies
+    Add a rough elasticDB style function to pre-populate if requetsed
+    Calculate dt* for assumaed constant Q
+    Absorb calculation of dt* into Class
+    Make a ElasticTensor Class that handles the anisotorpy/rotation/decomposition aspects
+    Seperate Medium/Material class that holds other properties (denisty, thickness etc.)
     '''
 
 class CrackedSolid:
