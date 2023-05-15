@@ -38,26 +38,26 @@ def calc_velocity_and_attenuation(cmplx_c, rho, incs, azis):
     mazis = len(azis)
     velocity = np.zeros((3, nincs, mazis))
     attenuation = np.zeros((3, nincs, mazis))
-    fast_polarisations = np.zeros((3, nincs, mazis))
+    fast_polarisations = np.zeros((1, nincs, mazis))
     for i in range(0,len(incs)):
         for j in range(0,len(azis)):
-            velo, attn, fpol_vec = christoffel_solver(cmplx_c, rho, incs[i], azis[j])
+            velo, attn, fpol = christoffel_solver(cmplx_c, rho, incs[i], azis[j])
             velocity[:,i,j] = velo
             attenuation[:,i,j] = attn
-            fast_polarisations[:,i,j] = fpol_vec
+            fast_polarisations[:,i,j] = fpol
 
     if (mazis == 1) and (nincs == 1):
         velocity = velocity.reshape((3,))
         attenuation = attenuation.reshape((3,))
-        fast_polarisations = fast_polarisations.reshape((3,))
+        fast_polarisations = fast_polarisations.reshape((1,))
     elif (mazis == 1):
         velocity = velocity.reshape((3, nincs))
         attenuation = attenuation.reshape((3, nincs))
-        fast_polarisations = fast_polarisations.reshape((3,nincs,))
+        fast_polarisations = fast_polarisations.reshape((1,nincs,))
     elif nincs == 1:
         velocity = velocity.reshape((3, mazis))
         attenuation = attenuation.reshape((3, mazis))
-        fast_polarisations = fast_polarisations.reshape((3,mazis))
+        fast_polarisations = fast_polarisations.reshape((1,mazis))
 
     return velocity, attenuation, fast_polarisations
 
@@ -85,7 +85,8 @@ def christoffel_solver(C, rho, inc, azi):
     '''
     Solves the christoffel equation for a complex (or real) elastic tensor C
 
-    Returns sorted phase velocities and dissipation coefficiants (1/Q)
+    Returns sorted phase velocities and dissipation coefficiants (1/Q). Fpol is angle in plane normal to raypath of FSW                           
+    (deg, zero is x3 direction, +ve c'wise looking along raypath at origin). For incidence = 90 this corresponds to fast polarisation in geographic reference frame.
     '''
     X = sphe2cart(inc, azi)
     # Form 3x3 Christoffel Tensor using Winterstein method (pg 1076, Winterstein, 1999)
@@ -121,7 +122,7 @@ def christoffel_solver(C, rho, inc, azi):
     elif fpol > 90:
         fpol = fpol - 180 
 
-    return velo_raw[idx], q_raw[idx], S1P
+    return velo_raw[idx], q_raw[idx], fpol
 
 def v_rot_gamma(vec, gamma):
     '''Rotates about X3 axis, borrowed (ported) from MSAT to ensure consitency '''
