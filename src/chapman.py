@@ -13,7 +13,10 @@ def chapman_ani(f, lam, mu, bulk_f, visc_f, aspect, cden, fden,
     '''
     Calculates a hexagonal, frequency dependent, complex elastic tensor C using 
     Mark Chapman's 2003 squirt flow model. This implementation assumes a fully saturated
-    cracked solid
+    cracked solid.
+
+    Following the cartiesian co-ordinates in Chapman (2003) where x3 (vertical) axis is aligned with fracture normal
+    i.e., base model is horizontally oriented fractures. 
     
     Parameters
     ----------
