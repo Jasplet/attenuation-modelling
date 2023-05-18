@@ -224,7 +224,25 @@ class CrackedSolid:
  
     def calc_velocity_and_attenuation(self, incs, azis):
         '''
-        Solves christoffel equation for rays propagating at theta degrees from the crack normal.
+        Solves christoffel equation for rays propagating at a given inclination and azimuth.
+
+        Makes function from christoffel.py inbuilt
+
+        Parameters
+        -----------
+        incs : 1-d numpy array
+            inclination angles of interest in range 0-90. inc = 0 is horizontal propoagation, inc = 90 is vertical
+        azis : 1-d numpy array
+            azimuths of interest in range 0-360.
+        
+        Returns:
+        ----------
+        velocity : nd-array
+            seismic velocities for P, S1, S2 return in shape (3,nincs, nazis)
+        attenuation : nd-array
+            1/Q values for P, S1, S2 return in shape (3,nincs, nazis)
+        fast_pol : nd-array
+            S1 polarisation vector for each inclination and azimuth
         '''
         
         velocity, attenuation, fast_pol = calc_velocity_and_attenuation(self.cmplx_c, self.rho_eff, incs, azis)
