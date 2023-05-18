@@ -12,7 +12,27 @@ import numpy as np
 
 def calc_velocity_and_attenuation(cmplx_c, rho, incs, azis):
     '''
-    Solves christoffel equation for rays propagating at theta degrees from the crack normal.
+    Solves christoffel equation for rays propagating at given inclination and azimuth.
+
+    Parameters
+    -----------
+    cmplc_c : 6 x 6 array
+        complex elastic tensor (in 6x6 Voight notation form)
+    rho : float
+        density of medium [kg/m3]
+    incs : 1-d numpy array
+        inclination angles of interest in range 0-90. inc = 0 is horizontal propoagation, inc = 90 is vertical
+    azis : 1-d numpy array
+        azimuths of interest in range 0-360.
+    
+    Returns:
+    ----------
+    velocity : nd-array
+        seismic velocities for P, S1, S2 return in shape (3,nincs, nazis)
+    attenuation : nd-array
+        1/Q values for P, S1, S2 return in shape (3,nincs, nazis)
+    fast_polarisations : nd-array
+        S1 polarisation vector for each inclination and azimuth
     '''
     nincs = len(incs)
     mazis = len(azis)
@@ -24,7 +44,7 @@ def calc_velocity_and_attenuation(cmplx_c, rho, incs, azis):
             velo, attn, fpol = christoffel_solver(cmplx_c, rho, incs[i], azis[j])
             velocity[:,i,j] = velo
             attenuation[:,i,j] = attn
-            fast_polarisations[0,i,j] = fpol
+            fast_polarisations[:,i,j] = fpol
 
     if (mazis == 1) and (nincs == 1):
         velocity = velocity.reshape((3,))
@@ -33,11 +53,11 @@ def calc_velocity_and_attenuation(cmplx_c, rho, incs, azis):
     elif (mazis == 1):
         velocity = velocity.reshape((3, nincs))
         attenuation = attenuation.reshape((3, nincs))
-        fast_polarisations = fast_polarisations.reshape((nincs,))
+        fast_polarisations = fast_polarisations.reshape((1,nincs,))
     elif nincs == 1:
         velocity = velocity.reshape((3, mazis))
         attenuation = attenuation.reshape((3, mazis))
-        fast_polarisations = fast_polarisations.reshape((mazis,))
+        fast_polarisations = fast_polarisations.reshape((1,mazis))
 
     return velocity, attenuation, fast_polarisations
 
@@ -48,10 +68,13 @@ def sphe2cart(inc, azi):
     '''
     ir = np.deg2rad(inc)
     ar = np.deg2rad(azi)
-    
-    X = np.array([np.cos(ar)*np.cos(ir),
-                  -1*np.sin(ar)*np.cos(ir),
-                  np.sin(ir)
+    caz = np.cos(ar)
+    saz = np.sin(ar)
+    cinc = np.cos(ir)
+    sinc = np.sin(ir)
+    X = np.array([caz*cinc,
+                  -1*saz*cinc,
+                  sinc
                  ])
     # normalise X vector
     r = np.sqrt(X[0]**2 + X[1]**2 + X[2]**2)
@@ -62,7 +85,8 @@ def christoffel_solver(C, rho, inc, azi):
     '''
     Solves the christoffel equation for a complex (or real) elastic tensor C
 
-    Returns sorted phase velocities and dissipation coefficiants (1/Q)
+    Returns sorted phase velocities and dissipation coefficiants (1/Q). Fpol is angle in plane normal to raypath of FSW                           
+    (deg, zero is x3 direction, +ve c'wise looking along raypath at origin). For incidence = 90 this corresponds to fast polarisation in geographic reference frame.
     '''
     X = sphe2cart(inc, azi)
     # Form 3x3 Christoffel Tensor using Winterstein method (pg 1076, Winterstein, 1999)
@@ -92,15 +116,13 @@ def christoffel_solver(C, rho, inc, azi):
     # Using ported msat functions to make sure i do the right rotations
     S1PR = v_rot_gamma(S1P, azi)
     S1PRR = v_rot_beta(S1PR, inc)
-
     fpol = np.rad2deg(np.arctan2(S1PRR[1], S1PRR[2]))
     if fpol < -90:
         fpol = fpol + 180
     elif fpol > 90:
         fpol = fpol - 180 
 
-
-    return velo_raw[idx], q_raw[idx], fpol 
+    return velo_raw[idx], q_raw[idx], fpol
 
 def v_rot_gamma(vec, gamma):
     '''Rotates about X3 axis, borrowed (ported) from MSAT to ensure consitency '''
