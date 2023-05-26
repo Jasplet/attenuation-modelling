@@ -172,14 +172,17 @@ class CrackedSolid:
                                    self.aspect, freq)
 
     def set_chapman_param(self, params):
-        self.visc_f = params['visc_f']
+        
         self.cden = params['cden']
         self.fden = params['fden']
         self.flen = params['flen']
         self.por = params['por']
         self.tau_m = params['tau_m']
         self.rho_eff = self.por*self.Fill.rho + (1- self.por)*self.Solid.rho
-
+        if 'visc_f' not in params:
+            self.visc_f = 1
+        else :
+            self.visc_f = params['visc_f']
     
     def calc_chapman_tensor(self, freq):
         '''
