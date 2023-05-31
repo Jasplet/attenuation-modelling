@@ -203,35 +203,76 @@ class CrackedSolid:
         '''
         Approximates attenuation using Hudsons's forumulas as described in 
         Crampin (1984) eqn. 5'
+
+        Parameters:
+        ----------
+        theta : 
+            propagtion angle relative to fracture normal (0 = fracture perpendicular)
+        freq : float
+            frequency of interest
+        Returns:
+        ----------
+        qp_inv:
+            1/Qp evaluated for an input theta
+        qsr_inv:
+            1/Qsr (radial shear-wave)
+        qsp_inv: 
+            1/Qsp (ray perpendicular shear-wave)
         '''
         u11, u33 = calculate_u_coefficiants(self.Solid.lam, self.Solid.mu,
                                             self.Fill.kappa, self.Fill.mu,
                                             self.aspect)
-        return approx_q_values(theta, freq, self.cden, self.crad, self.Solid.vp,
-                               self.Solid.vs, u11, u33)
-
-    # def calculate_tstar(self, theta, freq, path_length, vp, vs):
-    #     '''
-    #     Calculates differntial attenuation in terms of t* using hudson modelling
-    #     '''
-    #     azis = np.zeros(1)
-    #     velo, attn = self.calc_velocity_and_attenuation(theta, azis)
-        
-    #     tstar = 
-        
-    #     return tp_star, tsr_star, tsp_star
-    
+        qp_inv, qsr_inv, qsp_inv = approx_q_values(theta, freq, self.cden, self.crad, self.Solid.vp,
+                                                    self.Solid.vs, u11, u33)
+        return qp_inv, qsr_inv, qsp_inv
  
     def calc_velocity_and_attenuation(self, incs, azis):
         '''
         Solves christoffel equation for rays propagating at theta degrees from the crack normal.
+
+        Parameters:
+        ----------
+        incs : 1-d numpy array
+            inclination angles of interest in range 0-90. inc = 0 is horizontal propoagation, inc = 90 is vertical
+        azis : 1-d numpy array
+            azimuths of interest in range 0-360.
+        
+        Returns:
+        ----------
+        velocity : nd-array
+            seismic velocities for P, S1, S2 return in shape (3,nincs, nazis)
+        attenuation : nd-array
+            1/Q values for P, S1, S2 return in shape (3,nincs, nazis)
+        fast_polarisations : nd-array
+            S1 polarisation vector for each inclination and azimuth
+
         '''
         
         velocity, attenuation, fast_pol = calc_velocity_and_attenuation(self.cmplx_c, self.rho_eff, incs, azis)
         return velocity, attenuation, fast_pol
 
     def rotate_tensor(self, alpha, beta, gamma, inplace=False):
+        '''
+        Takes elastic tensor and rotates it about X1, X2, X3 axes. 
 
+        Rotations are applied in order X1, X2, X3
+
+        Parameters:
+        ----------
+        alpha : float
+            rotation angle about X1 axis
+        beta : float 
+            rotation angle about X2 axis
+        gamma : float
+            rotation angle about X3 
+        inplace : bool
+            switch for if rotate elastic tensor should be returned in place
+        
+        Returns:
+        ----------
+        cmplx_c_rot :
+            rotated complex elastic tensor (taken from self.cmplx_c)
+        '''
         rad_alpha = np.deg2rad(alpha)
         rad_beta = np.deg2rad(beta)
         rad_gamma = np.deg2rad(gamma)
@@ -251,6 +292,24 @@ def _rotate_tensor(c, alpha ,beta, gamma):
     
     Unlike MS_rot3 this function only handles a single rotation of a single matrix.
     Rotations are always applied in the order alpha, beta, gamma
+
+     Parameters:
+    ----------
+    c : array, shape (6,6)
+        elastic tensor to rotate
+    alpha : float
+        rotation angle about X1 axis
+    beta : float 
+        rotation angle about X2 axis
+    gamma : float
+        rotation angle about X3 
+    inplace : bool
+        switch for if rotate elastic tensor should be returned in place
+    
+    Returns:
+    ----------
+    cr :
+        rotated elastic tensor
     '''
 
     rot_order = [0, 1, 2]
@@ -272,7 +331,18 @@ def _rotR(C, R):
 
     Ported from MS_rotR, which is intended to be an under-the-hood function
 
-    Routines are from 'Applied Mechanics of Solids' by Allen F. Bower, Chapter 3, 2010 
+    Routines are from 'Applied Mechanics of Solids' by Allen F. Bower, Chapter 3, 2010
+
+    Parameters:
+    ----------
+    C : array 
+        elastic tensor to rotate
+    R : array
+        roation matrix
+    Returns:
+    ----------
+    CR : array 
+        rotated elastic tensor
     '''
     # Form the K matrix (based on Bower (2010) [http://solidmechanics.org/Text/Chapter3_2/Chapter3_2.php]
 

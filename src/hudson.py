@@ -10,6 +10,19 @@ import numpy as np
 def hudson_c0(lam, mu):
     '''
     Form isotropic matrix based on lamda and mu
+
+    Parameters:
+    ----------
+
+    lam : float
+        1st lamee parameter (lambda) of the uncracked solid
+    mu : float
+        shear modulus of the uncracked solid
+
+    Returns:
+    ----------
+    c : array, shape (6,6)
+        isotropic elastic tensor based on lam and mu
     '''
     c11 = lam + 2*mu
     c = np.array([
@@ -95,6 +108,25 @@ def hudson_c_real(lam, mu, u11, u33, cden):
     '''
     Creates the elastic tensor for a cracked solid , with cracks normal to the X1 axis.
     We use Crampin (1984)'s formulation of Hudson (1981, 1982)
+
+    Parameters:
+    ----------
+    lam : float
+        1st lamee parameter (lambda) of the uncracked solid
+    mu : float
+        shear modulus of the uncracked solid
+    u11 : float
+        coefficiant U11 from Crampin (1984)
+    u33 : float
+        coefficiant U33 from Crampin (1984)
+    cden : float
+        crack density
+
+    Returns:
+    ----------
+    cR : array, shape (6,6)
+        real components of a compelx elastic tensor calculated according to Crampin (1984)'s approximations
+
     '''
     D = np.diag(np.array([u11, u11, u11, 0, u33, u33]))
     c0 = hudson_c0(lam, mu)
@@ -180,7 +212,14 @@ def calculate_u_coefficiants(lam, mu, kappap, mup, aspr):
         Bulk modulus of Crack Fill
     mup : float
         Shear modulus of Crack Fill
-    aspr : float    
+    aspr : float
+
+    Returns:
+    ----------
+    u11 : float
+        coefficiant U11 from Crampin (1984)
+    u33 : float
+        coefficiant U33 from Crampin (1984)
     '''
     t1 = lam + 2.0*mu
     t2 = 3.0*lam + 4.0*mu
@@ -223,6 +262,10 @@ def approx_q_values(theta, freq, cden, cr, vp, vs, u11, u33):
     -------
     qp_inv:
         1/Qp evaluated for an input theta
+    qsr_inv:
+        1/Qsr (radial shear-wave)
+    qsp_inv: 
+        1/Qsp (ray perpendicular shear-wave)
     '''
     vsvp = vs/vp
     x = (3/2 + (vsvp**5))*(u33**2)

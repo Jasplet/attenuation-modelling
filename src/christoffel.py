@@ -65,6 +65,18 @@ def sphe2cart(inc, azi):
     '''
     Converts from spherical to cartesian co-ordinates where:
     North, x = [100]. West, y = [010]. Vertical, z = [001]
+
+    Parameters:
+    ----------
+    inc : float
+        inclination angle
+    azi : float
+        azimuth angle
+
+    Returns:
+    ----------
+    X/r : array
+        normalised vector of inc/azi in cartesian co-ordinates
     '''
     ir = np.deg2rad(inc)
     ar = np.deg2rad(azi)
@@ -83,10 +95,31 @@ def sphe2cart(inc, azi):
 
 def christoffel_solver(C, rho, inc, azi):
     '''
-    Solves the christoffel equation for a complex (or real) elastic tensor C
+    Solves the christoffel equation for a seismic ray propagating through a medium 
+    described by a complex elastic tensor C
 
-    Returns sorted phase velocities and dissipation coefficiants (1/Q). Fpol is angle in plane normal to raypath of FSW                           
-    (deg, zero is x3 direction, +ve c'wise looking along raypath at origin). For incidence = 90 this corresponds to fast polarisation in geographic reference frame.
+    Returns sorted phase velocities and dissipation coefficiants (1/Q)
+    
+    Parameters:
+    ----------
+    C : array shape (6, 6)
+        complex elastic tensor describing medium
+    rho : float
+        density of medium [kg/m3]
+    inc : float
+        incidence angle of seismic ray [deg]
+    azi : float
+        azimuth angle of seismic ray [deg]
+    
+    Returns:
+    ----------
+    velocity : array
+        seismic velocities for [P, S1, S2]
+    attenuation : array
+        attenuation (1/Q) for [P, S1, S2]
+    fpol : float 
+        angle in plane normal to raypath of fast shear-wave (deg, zero is x3 direction, +ve c'wise looking along raypath at origin).
+        for incidence = 90 this corresponds to fast polarisation in geographic reference frame.
     '''
     X = sphe2cart(inc, azi)
     # Form 3x3 Christoffel Tensor using Winterstein method (pg 1076, Winterstein, 1999)
@@ -121,11 +154,25 @@ def christoffel_solver(C, rho, inc, azi):
         fpol = fpol + 180
     elif fpol > 90:
         fpol = fpol - 180 
-
-    return velo_raw[idx], q_raw[idx], fpol
+    velocity = velo_raw[idx]
+    attenutaion = q_raw[idx]
+    return velocity, attenuation, fpol
 
 def v_rot_gamma(vec, gamma):
-    '''Rotates about X3 axis, borrowed (ported) from MSAT to ensure consitency '''
+    '''
+    Rotates input vector about X3 axis, borrowed (ported) from MSAT to ensure consitency 
+    
+    Parameters:
+    ----------
+    vec : array 
+        input (3-component) vector to rotate
+    gamma : float
+        rotation angle about X3 axis
+
+    Returns:
+    ----------
+    vector rotated about X3 axis
+    '''
     g_rad = np.deg2rad(gamma)
     rotmat = np.array([
                         [np.cos(g_rad), np.sin(g_rad), 0],
@@ -134,7 +181,20 @@ def v_rot_gamma(vec, gamma):
     return vec @ rotmat
 
 def v_rot_beta(vec, beta):
-    '''Rotates about X2 axis, borrowed (ported) from MSAT to ensure consitency '''
+    '''
+    Rotates about X2 axis, borrowed (ported) from MSAT to ensure consitency 
+    
+    Parameters:
+    ----------
+    vec : array 
+        input (3-component) vector to rotate
+    beta : float
+        rotation angle about X2 axis
+
+    Returns:
+    ----------
+    vector rotated about X2 axis
+    '''
     b_rad = np.deg2rad(beta)
     rotmat = np.array([
                         [np.cos(b_rad), 0, -1*np.sin(b_rad)],
