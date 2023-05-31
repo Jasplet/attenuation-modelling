@@ -172,14 +172,17 @@ class CrackedSolid:
                                    self.aspect, freq)
 
     def set_chapman_param(self, params):
-        self.visc_f = params['visc_f']
+        
         self.cden = params['cden']
         self.fden = params['fden']
         self.flen = params['flen']
         self.por = params['por']
         self.tau_m = params['tau_m']
         self.rho_eff = self.por*self.Fill.rho + (1- self.por)*self.Solid.rho
-
+        if 'visc_f' not in params:
+            self.visc_f = 1
+        else :
+            self.visc_f = params['visc_f']
     
     def calc_chapman_tensor(self, freq):
         '''
@@ -228,10 +231,12 @@ class CrackedSolid:
  
     def calc_velocity_and_attenuation(self, incs, azis):
         '''
-        Solves christoffel equation for rays propagating at theta degrees from the crack normal.
+        Solves christoffel equation for rays propagating at a given inclination and azimuth.
 
-        Parameters:
-        ----------
+        Makes function from christoffel.py inbuilt
+
+        Parameters
+        -----------
         incs : 1-d numpy array
             inclination angles of interest in range 0-90. inc = 0 is horizontal propoagation, inc = 90 is vertical
         azis : 1-d numpy array
@@ -243,9 +248,8 @@ class CrackedSolid:
             seismic velocities for P, S1, S2 return in shape (3,nincs, nazis)
         attenuation : nd-array
             1/Q values for P, S1, S2 return in shape (3,nincs, nazis)
-        fast_polarisations : nd-array
+        fast_pol : nd-array
             S1 polarisation vector for each inclination and azimuth
-
         '''
         
         velocity, attenuation, fast_pol = calc_velocity_and_attenuation(self.cmplx_c, self.rho_eff, incs, azis)
