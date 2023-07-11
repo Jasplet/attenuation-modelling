@@ -9,7 +9,7 @@ Created on Fri Mar 18 16:50:54 2022
 import numpy as np
 
 def chapman_ani(f, lam, mu, bulk_f, visc_f, aspect, cden, fden,
-                frac_length, por, tau, grainsize=120e-6):
+                frac_length, por, tau, grainsize):
     '''
     Calculates a hexagonal, frequency dependent, complex elastic tensor C using 
     Mark Chapman's 2003 squirt flow model. This implementation assumes a fully saturated

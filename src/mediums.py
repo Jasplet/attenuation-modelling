@@ -179,6 +179,8 @@ class CrackedSolid:
         self.por = params['por']
         self.tau_m = params['tau_m']
         self.rho_eff = self.por*self.Fill.rho + (1- self.por)*self.Solid.rho
+        self.grainsize = params['grainsize']
+        
         if 'visc_f' not in params:
             self.visc_f = 1
         else :
