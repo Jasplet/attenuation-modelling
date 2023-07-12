@@ -155,7 +155,7 @@ def christoffel_solver(C, rho, inc, azi):
     elif fpol > 90:
         fpol = fpol - 180 
     velocity = velo_raw[idx]
-    attenutaion = q_raw[idx]
+    attenuation = q_raw[idx]
     return velocity, attenuation, fpol
 
 def v_rot_gamma(vec, gamma):
