@@ -180,7 +180,7 @@ class CrackedSolid:
         self.tau_m = params['tau_m']
         self.rho_eff = self.por*self.Fill.rho + (1- self.por)*self.Solid.rho
         self.grainsize = params['grainsize']
-        
+
         if 'visc_f' not in params:
             self.visc_f = 1
         else :
@@ -201,7 +201,7 @@ class CrackedSolid:
         '''
         self.cmplx_c = chapman_ani(freq, self.Solid.lam, self.Solid.mu, self.Fill.kappa,
                                    self.visc_f, self.aspect, self.cden, self.fden, self.flen,
-                                   self.por, self.tau_m)
+                                   self.por, self.tau_m, self.grainsize)
 
 
     def hudson_approx_attenuation(self, theta, freq):
