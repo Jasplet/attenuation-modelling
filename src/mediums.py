@@ -99,7 +99,7 @@ class IsoMedium:
 
 class AnisotropicMedium:
     '''
-    Anistotrpic solid medium 
+    Anistotropic solid medium 
 
     To-Dos
 
@@ -113,9 +113,11 @@ class AnisotropicMedium:
     edit
     '''
 
+
 class CrackedSolid:
     '''
-    Defines parameterisation of a cracked solid
+    Defines parameterisation of a cracked solid to be used for effective medium modelling of 
+    aligned fluid-filled fracture sets.
     '''
     def __init__(self, Solid, Fill, model, **kwargs):
         self.Solid = Solid
@@ -130,7 +132,7 @@ class CrackedSolid:
       
     def set_hudson_params(self, density, radii, aspect):
         '''
-        Sets up parameters for Hudson Modelling, this model only relies on crack density
+        Sets up parameters for effective medium modelling using the theory of Hudson (1982)
         
         Parameters
         ----------
